@@ -27,6 +27,12 @@ local prepare_bare_repo = function(dir, origin_dir)
     vim.api.nvim_exec('!git clone --bare /tmp/'..origin_dir..' /tmp/'..dir, true)
 end
 
+local prepare_neat_bare_repo = function(dir, origin_dir)
+    vim.api.nvim_exec('!mkdir /tmp/'..dir, true)
+    vim.api.nvim_exec('!git clone --bare /tmp/'..origin_dir..' /tmp/'..dir..'/.bare', true)
+    vim.api.nvim_exec('!echo "gitdir: ./.bare" > /tmp/'..dir..'/.git', true)
+end
+
 local fix_fetch_all = function()
     vim.api.nvim_exec('!git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"', true)
 end
@@ -184,6 +190,33 @@ M.in_bare_repo_from_origin_1_worktree = function(cb)
 
         prepare_origin_repo(origin_repo_dir)
         prepare_bare_repo(bare_repo_dir, origin_repo_dir)
+        change_dir(bare_repo_dir)
+        create_worktree('master','master')
+
+        local _, err = pcall(cb)
+
+        reset_cwd()
+
+        cleanup_repos()
+
+        if err ~= nil then
+            error(err)
+        end
+
+    end
+end
+
+M.in_neat_bare_repo_from_origin_1_worktree = function(cb)
+    return function()
+        local random_id = random_string()
+        local origin_repo_dir = 'git_worktree_test_origin_repo_' .. random_id
+        local bare_repo_dir = 'git_worktree_test_repo_' .. random_id
+
+        config_git_worktree()
+        cleanup_repos()
+
+        prepare_origin_repo(origin_repo_dir)
+        prepare_neat_bare_repo(bare_repo_dir, origin_repo_dir)
         change_dir(bare_repo_dir)
         create_worktree('master','master')
 

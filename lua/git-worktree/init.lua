@@ -63,6 +63,12 @@ M.setup_git_info = function()
             -- if not in worktree git dir should be absolute
             git_worktree_root = stdout
         end
+
+        -- use parent folder if using a .bare dir
+        if git_worktree_root:find("%.bare$") then
+            git_worktree_root = Path:new(git_worktree_root):parent():absolute()
+        end
+
         status:log():debug("git directory is: " .. git_worktree_root)
     end
 

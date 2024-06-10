@@ -4,8 +4,10 @@ local Path = require('plenary.path')
 local harness = require('tests.git_harness')
 local in_non_git_repo = harness.in_non_git_repo
 local in_bare_repo_from_origin_no_worktrees = harness.in_bare_repo_from_origin_no_worktrees
+local in_neat_bare_repo_from_origin_no_worktrees = harness.in_neat_bare_repo_from_origin_no_worktrees
 local in_repo_from_origin_no_worktrees = harness.in_repo_from_origin_no_worktrees
 local in_bare_repo_from_origin_1_worktree = harness.in_bare_repo_from_origin_1_worktree
+local in_neat_bare_repo_from_origin_1_worktree = harness.in_neat_bare_repo_from_origin_1_worktree
 local in_repo_from_origin_1_worktree = harness.in_repo_from_origin_1_worktree
 local in_repo_from_local_no_worktrees = harness.in_repo_from_local_no_worktrees
 local in_bare_repo_from_origin_2_worktrees = harness.in_bare_repo_from_origin_2_worktrees
@@ -858,6 +860,15 @@ describe('git-worktree', function()
 
         end))
 
+        it('finds the paths in a neat bare git repo',
+            in_neat_bare_repo_from_origin_1_worktree(function()
+
+            git_worktree:setup_git_info()
+            assert.are.same(vim.loop.cwd(), git_worktree:get_root())
+            assert.are.same(vim.loop.cwd(), git_worktree:get_current_worktree_path())
+
+        end))
+
         it('finds the paths from a git repo in a worktree',
             in_repo_from_origin_1_worktree(function()
 
@@ -886,6 +897,31 @@ describe('git-worktree', function()
 
         it('finds the paths from a bare git repo in a worktree',
             in_bare_repo_from_origin_1_worktree(function()
+
+            local expected_git_repo = git_worktree:get_root()
+            -- switch to a worktree
+            local path = "master"
+            git_worktree.switch_worktree(path)
+
+            vim.fn.wait(
+            10000,
+            function()
+                return completed_switch
+            end,
+            1000
+            )
+
+            -- Check to make sure directory was switched
+            assert.are.same(vim.loop.cwd(), git_worktree:get_root() .. Path.path.sep .. path)
+
+            git_worktree:setup_git_info()
+            assert.are.same(expected_git_repo, git_worktree:get_root())
+            assert.are.same(vim.loop.cwd(), git_worktree:get_current_worktree_path())
+
+        end))
+
+        it('finds the paths from a neat bare git repo in a worktree',
+            in_neat_bare_repo_from_origin_1_worktree(function()
 
             local expected_git_repo = git_worktree:get_root()
             -- switch to a worktree
